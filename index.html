@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI News Analyzer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #010108;
+            overflow-x: hidden;
+        }
+
+        /* Starfield Background */
+        .star-field {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background-image:
+                radial-gradient(1px 1px at 25px 25px, white, transparent),
+                radial-gradient(1px 1px at 75px 75px, white, transparent),
+                radial-gradient(1.5px 1.5px at 125px 50px, white, transparent),
+                radial-gradient(1.5px 1.5px at 200px 150px, white, transparent);
+            background-size: 200px 200px;
+            animation: pan 60s linear infinite;
+        }
+
+        @keyframes pan {
+            from { background-position: 0% 0%; }
+            to { background-position: 100% 100%; }
+        }
+
+        /* Central Glow Effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0) 60%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Custom glowing text */
+        .text-glow {
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        /* Custom scrollbar for textarea */
+        textarea::-webkit-scrollbar { width: 6px; }
+        textarea::-webkit-scrollbar-track { background: transparent; }
+        textarea::-webkit-scrollbar-thumb { background-color: #581c87; border-radius: 20px; }
+
+        /* Animation for results appearing */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+
+        /* Input card styling */
+        .input-card {
+            background-color: rgba(10, 10, 22, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .input-card:focus-within {
+             border-color: rgba(168, 85, 247, 0.6);
+             box-shadow: 0 0 25px rgba(168, 85, 247, 0.3);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .shake {
+            animation: shake 0.3s ease-in-out;
+        }
+
+        /* Menu Panel Styling */
+        #menu-panel {
+            transition: transform 0.3s ease-in-out;
+        }
+        .menu-open {
+            transform: translateX(0);
+        }
+        .menu-closed {
+            transform: translateX(-100%);
+        }
+        #menu-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+    <div class="star-field"></div>
+    
+    <!-- Menu Button -->
+    <button id="menu-btn" class="fixed top-6 left-6 z-50 p-2 bg-purple-600/50 hover:bg-purple-600/80 rounded-lg backdrop-blur-sm border border-purple-500/30 transition-all">
+        <i data-feather="menu" class="w-6 h-6 text-white"></i>
+    </button>
+    
+    <!-- Menu Panel -->
+    <div id="menu-overlay" class="fixed inset-0 bg-black/60 z-40 opacity-0 pointer-events-none"></div>
+    <div id="menu-panel" class="fixed top-0 left-0 h-full w-80 bg-slate-900/80 backdrop-blur-lg border-r border-purple-500/20 z-50 p-6 menu-closed">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-bold text-white">Menu</h2>
+            <button id="close-menu-btn" class="p-1 text-slate-400 hover:text-white">
+                <i data-feather="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+        <div class="space-y-4 text-purple-200/80">
+            <div>
+                <h3 class="font-bold text-white text-lg mb-2">ℹ️ About</h3>
+                <p>📰 Fake-news detection</p>
+                <p>🏷️ News categorization</p>
+                <p>⚠️ Hate speech detection</p>
+            </div>
+            <hr class="border-purple-500/20"/>
+            <div>
+                <h3 class="font-bold text-white text-lg mb-2">🚀 Features</h3>
+                <p>• User-end results</p>
+                <p>• Real-time analysis</p>
+            </div>
+            <hr class="border-purple-500/20"/>
+            <div>
+                <h3 class="font-bold text-white text-lg mb-2">📝 Usage</h3>
+                <p>1. Paste article</p>
+                <p>2. Click Analyze</p>
+                <p>3. View results</p>
+            </div>
+             <hr class="border-purple-500/20"/>
+            <div>
+                <h3 class="font-bold text-white text-lg mb-2">🚀 Connect</h3>
+                <div class="flex gap-4 mt-3">
+                    <a href="https://github.com/Karanpr-18" target="_blank" class="flex-1 flex items-center justify-center gap-2 text-center py-2 bg-[#24292F] hover:bg-[#343a42] rounded-lg text-white transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-github" viewBox="0 0 16 16">
+                          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8"/>
+                        </svg>
+                        GitHub
+                    </a>
+                    <a href="https://www.linkedin.com/in/karan-bhoriya-b5a3382b7" target="_blank" class="flex-1 flex items-center justify-center gap-2 text-center py-2 bg-[#0A66C2] hover:bg-[#004182] rounded-lg text-white transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-linkedin" viewBox="0 0 16 16">
+                          <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854zm4.943 12.248V6.169H2.542v7.225zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.705-.52-1.248-1.342-1.248S2.4 3.226 2.4 3.931c0 .694.521 1.248 1.327 1.248zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016l.016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225z"/>
+                        </svg>
+                        LinkedIn
+                    </a>
+                </div>
+            </div>
+        </div>
+        <p class="absolute bottom-6 left-6 text-slate-500 text-sm">Made by Karan</p>
+    </div>
+
+
+    <div class="min-h-screen w-full p-4 sm:p-8 flex flex-col items-center justify-center">
+        <main class="w-full max-w-2xl flex flex-col items-center text-center gap-8">
+            
+            <!-- Header -->
+            <div class="flex flex-col items-center gap-4">
+                <h1 class="text-5xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-purple-500">
+                    AI News Analyzer
+                </h1>
+                <p class="text-purple-300/80 text-lg max-w-xl">
+                    Paste a news article to instantly verify its authenticity, check for harmful content, and identify its category.
+                </p>
+            </div>
+            
+            <!-- Input Section -->
+            <div class="w-full flex flex-col gap-4">
+                 <div id="textarea-card" class="w-full input-card rounded-2xl shadow-2xl shadow-purple-900/20">
+                    <textarea 
+                        id="news-article" 
+                        rows="12" 
+                        class="w-full p-6 bg-transparent border-none focus:ring-0 resize-none text-slate-300 placeholder:text-slate-500"
+                        placeholder="Your news article goes here..."
+                    ></textarea>
+                </div>
+                <button id="analyze-btn" class="group w-full bg-purple-600 text-white font-semibold py-3 px-6 rounded-lg hover:bg-purple-700 disabled:bg-slate-700 disabled:cursor-not-allowed transition-all duration-300 shadow-lg shadow-purple-900/50 hover:shadow-xl hover:shadow-purple-700/50 flex items-center justify-center gap-2">
+                    <i data-feather="bar-chart-2" class="w-5 h-5"></i>
+                    <span id="btn-text">Analyze Article</span>
+                </button>
+            </div>
+
+            <!-- Loader -->
+            <div id="loader" class="hidden flex-col items-center justify-center text-center pt-8">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-400"></div>
+                <p class="mt-4 text-purple-300">Analyzing Article...</p>
+            </div>
+                
+            <!-- Results Container -->
+            <div id="results-section" class="hidden w-full pt-8">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <!-- Authenticity -->
+                    <div id="authenticity-card" class="bg-slate-900/50 backdrop-blur-sm border border-slate-800 p-6 rounded-xl flex flex-col items-center gap-4 text-center opacity-0">
+                        <div id="authenticity-icon" class="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"></div>
+                        <div class="w-full">
+                            <p class="text-slate-400 font-medium">Authenticity</p>
+                            <h3 id="authenticity-text" class="text-2xl font-bold"></h3>
+                        </div>
+                    </div>
+
+                    <!-- Hate Speech -->
+                    <div id="hatespeech-card" class="bg-slate-900/50 backdrop-blur-sm border border-slate-800 p-6 rounded-xl flex flex-col items-center gap-4 text-center opacity-0" style="animation-delay: 150ms;">
+                        <div id="hatespeech-icon" class="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0"></div>
+                        <div class="w-full">
+                            <p class="text-slate-400 font-medium">Hate Speech</p>
+                            <h3 id="hatespeech-text" class="text-2xl font-bold"></h3>
+                        </div>
+                    </div>
+
+                    <!-- Category -->
+                    <div id="category-card" class="bg-slate-900/50 backdrop-blur-sm border border-slate-800 p-6 rounded-xl flex flex-col items-center gap-4 text-center opacity-0" style="animation-delay: 300ms;">
+                        <div id="category-icon" class="w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 bg-slate-800 border border-slate-700">
+                             <i data-feather="tag" class="w-6 h-6 text-purple-400 text-glow"></i>
+                        </div>
+                        <div class="w-full">
+                            <p class="text-slate-400 font-medium">Category</p>
+                            <h3 id="category-text" class="text-2xl font-bold text-white"></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // DOM Elements
+        const analyzeBtn = document.getElementById('analyze-btn');
+        const newsArticleTextarea = document.getElementById('news-article');
+        const textareaCard = document.getElementById('textarea-card');
+        const resultsSection = document.getElementById('results-section');
+        const loader = document.getElementById('loader');
+        const btnText = document.getElementById('btn-text');
+
+        const authenticityCard = document.getElementById('authenticity-card');
+        const authenticityIcon = document.getElementById('authenticity-icon');
+        const authenticityText = document.getElementById('authenticity-text');
+
+        const hatespeechCard = document.getElementById('hatespeech-card');
+        const hatespeechIcon = document.getElementById('hatespeech-icon');
+        const hatespeechText = document.getElementById('hatespeech-text');
+
+        const categoryCard = document.getElementById('category-card');
+        const categoryText = document.getElementById('category-text');
+
+        // Menu Elements
+        const menuBtn = document.getElementById('menu-btn');
+        const closeMenuBtn = document.getElementById('close-menu-btn');
+        const menuPanel = document.getElementById('menu-panel');
+        const menuOverlay = document.getElementById('menu-overlay');
+
+        feather.replace();
+
+        // Menu Logic
+        const openMenu = () => {
+            menuPanel.classList.remove('menu-closed');
+            menuPanel.classList.add('menu-open');
+            menuOverlay.classList.remove('opacity-0', 'pointer-events-none');
+            menuOverlay.classList.add('opacity-100');
+        };
+
+        const closeMenu = () => {
+            menuPanel.classList.add('menu-closed');
+            menuPanel.classList.remove('menu-open');
+            menuOverlay.classList.add('opacity-0', 'pointer-events-none');
+            menuOverlay.classList.remove('opacity-100');
+        };
+
+        menuBtn.addEventListener('click', openMenu);
+        closeMenuBtn.addEventListener('click', closeMenu);
+        menuOverlay.addEventListener('click', closeMenu);
+
+        // Event Listener for Analyze Button
+        analyzeBtn.addEventListener('click', () => {
+            const articleText = newsArticleTextarea.value;
+            if (!articleText.trim()) {
+                textareaCard.classList.add('shake');
+                
+                const originalBtnText = "Analyze Article";
+                btnText.textContent = 'Please enter an article!';
+                analyzeBtn.disabled = true;
+
+                setTimeout(() => {
+                    textareaCard.classList.remove('shake');
+                    btnText.textContent = originalBtnText;
+                    analyzeBtn.disabled = false;
+                }, 1500);
+                return;
+            }
+
+            // --- UI: Start Loading ---
+            resultsSection.classList.add('hidden');
+            [authenticityCard, hatespeechCard, categoryCard].forEach(card => card.classList.remove('fade-in-up'));
+            loader.classList.remove('hidden');
+            loader.classList.add('flex');
+            analyzeBtn.disabled = true;
+            btnText.textContent = 'Analyzing...';
+
+            // --- REAL API CALL to your Python/Flask Backend ---
+            fetch('http://127.0.0.1:5000/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ article_text: articleText }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok. Is the server running?');
+                }
+                return response.json();
+            })
+            .then(results => {
+                // --- UI: Finish Loading & Display Results ---
+                updateUIWithResults(results);
+                loader.classList.add('hidden');
+                loader.classList.remove('flex');
+                resultsSection.classList.remove('hidden');
+                
+                // Trigger staggered animations
+                authenticityCard.classList.add('fade-in-up');
+                hatespeechCard.classList.add('fade-in-up');
+                categoryCard.classList.add('fade-in-up');
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+                loader.classList.add('hidden');
+                btnText.textContent = 'Analysis Failed!';
+            })
+            .finally(() => {
+                analyzeBtn.disabled = false;
+                if (btnText.textContent !== 'Analysis Failed!') {
+                    btnText.textContent = 'Analyze Again';
+                }
+            });
+        });
+
+        function updateUIWithResults(results) {
+            // Update Authenticity
+            const auth = results.authenticity;
+            authenticityText.textContent = auth.prediction;
+            if (auth.prediction === 'Real') {
+                authenticityText.className = 'text-2xl font-bold text-green-400 text-glow';
+                authenticityIcon.innerHTML = `<i data-feather="check-circle" class="w-6 h-6 text-green-400 text-glow"></i>`;
+                authenticityIcon.className = 'w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 bg-green-500/10';
+            } else {
+                authenticityText.className = 'text-2xl font-bold text-red-500 text-glow';
+                authenticityIcon.innerHTML = `<i data-feather="x-octagon" class="w-6 h-6 text-red-500 text-glow"></i>`;
+                authenticityIcon.className = 'w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 bg-red-500/10';
+            }
+
+            // Update Hate Speech
+            const hs = results.hateSpeech;
+            if (hs.detected) {
+                hatespeechText.textContent = 'Detected';
+                hatespeechText.className = 'text-2xl font-bold text-amber-400 text-glow';
+                hatespeechIcon.innerHTML = `<i data-feather="alert-triangle" class="w-6 h-6 text-amber-400 text-glow"></i>`;
+                hatespeechIcon.className = 'w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 bg-amber-500/10';
+            } else {
+                hatespeechText.textContent = 'Not Detected';
+                hatespeechText.className = 'text-2xl font-bold text-sky-400 text-glow';
+                hatespeechIcon.innerHTML = `<i data-feather="shield" class="w-6 h-6 text-sky-400 text-glow"></i>`;
+                hatespeechIcon.className = 'w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 bg-sky-500/10';
+            }
+
+            // Update Category
+            categoryText.textContent = results.category.name;
+            
+            feather.replace();
+        }
+    </script>
+</body>
+</html>
+

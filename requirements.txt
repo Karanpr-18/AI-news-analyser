@@ -1,0 +1,13 @@
+streamlit>=1.32
+
+scikit-learn>=1.2
+
+joblib>=1.2
+
+numpy>=1.23
+
+scipy>=1.9
+
+flask_cors
+
+flask
