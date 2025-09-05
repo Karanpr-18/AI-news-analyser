@@ -1,5 +1,5 @@
 # 📰 News Intelligence Toolkit
-- Try live here -> (https://ai-news-analyzer.netlify.app/)
+- Try live here -> https://ai-news-analyzer.netlify.app/
 
 Three NLP models:
 - 🕵️‍♂️ Fake News Detection
@@ -71,4 +71,5 @@ Add a LICENSE (MIT recommended).
 
 ## 🤝 Contributing
 PRs and issues welcome.
+
 
