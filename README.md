@@ -1,5 +1,5 @@
 # 📰 News Intelligence Toolkit
-- Try live here -> https://ai-news-analyser.streamlit.app/
+- Try live here -> (https://ai-news-analyzer.netlify.app/)
 
 Three NLP models:
 - 🕵️‍♂️ Fake News Detection
@@ -25,7 +25,6 @@ Three NLP models:
 - scikit-learn
 - joblib
 - jupyter
-- streamlit
 
 
 **Streamlit:**
@@ -72,3 +71,4 @@ Add a LICENSE (MIT recommended).
 
 ## 🤝 Contributing
 PRs and issues welcome.
+
